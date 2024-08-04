@@ -6,6 +6,7 @@ from tasks import simple_task
 from ffmpeg_transcode import transcode
 from metadata_extraction import extract_metadata
 from thumbnail_generation import generate_thumbnail
+from upload_to_s3 import upload_to_s3
 
 redis_conn = Redis()
 q = Queue(connection=redis_conn)
