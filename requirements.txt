@@ -64,6 +64,7 @@ pydantic_core==2.20.1
 pyparsing==3.1.2
 pysrt==1.1.2
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 realtime==1.0.6
 redis==5.0.8
 regex==2024.7.24
