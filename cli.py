@@ -80,7 +80,7 @@ def enqueue_metadata(input):
 @click.argument("input")
 @click.argument("timestamp", default="00:00:10")
 def enqueue_thumbnail(input, timestamp):
-    output_file = f"{input}_thumbnail.png
+    output_file = f"{input}_thumbnail.png"
     thumbnail_job=q.enqueue(generate_thumbnail_v1, input, output_file, timestamp)
     click.echo(f"Thumbnail generation task enqueued for {input}")
     q.enqueue(
