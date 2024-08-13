@@ -3,11 +3,13 @@ import click
 from rq import Queue
 from redis import Redis
 from tasks import simple_task
+
 from ffmpeg_worker import transcode, transcode_v1, extract_metadata_v1, extract_metadata, generate_thumbnail_v1, generate_thumbnail, get_quality_and_duration
 import video_qualities
 from upload_to_s3 import upload_to_s3
 import db_actions
 from pathlib import Path
+from subtitle_generate import generate_subtitle
 
 
 redis_conn = Redis()
@@ -36,7 +38,9 @@ def enqueue_task():
 def transcode_video(input, output_file):
     transcode_v1(input, output_file)
     click.echo(f"Transcoded {input} to {output_file}")
-    upload_to_s3(f"{input}_transcoded.mp4", "video-transcoding-temp-1", f"{input}_transcoded.mp4")
+    upload_to_s3(
+        f"{input}_transcoded.mp4", "video-transcoding-temp-1", f"{input}_transcoded.mp4"
+    )
     click.echo(f"Uploaded {output_file} to S3")
 
 
@@ -44,8 +48,15 @@ def transcode_video(input, output_file):
 @click.argument("input")
 def enqueue_transcode(input):
     transcode_job= q.enqueue(transcode_v1, input, f"{input}_transcoded.mp4")
+
     click.echo(f"Transcoding task enqueued for {input}")
-    q.enqueue(upload_to_s3,f"{input}_transcoded.mp4", "video-transcoding-temp-1", f"{input}_transcoded.mp4", depends_on=transcode_job)
+    q.enqueue(
+        upload_to_s3,
+        f"{input}_transcoded.mp4",
+        "video-transcoding-temp-1",
+        f"{input}_transcoded.mp4",
+        depends_on=transcode_job,
+    )
     click.echo(f"Uploaded transcoded video {input}_transcoded.mp4 to S3")
 
 
@@ -55,7 +66,13 @@ def enqueue_metadata(input):
     output_file = f"{input}_metadata.json"
     metadata_job= q.enqueue(extract_metadata_v1, input, output_file)
     click.echo(f"Metadata extraction task enqueued for {input}")
-    q.enqueue(upload_to_s3, output_file, "video-metadata-temp-1", output_file, depends_on=metadata_job)
+    q.enqueue(
+        upload_to_s3,
+        output_file,
+        "video-metadata-temp-1",
+        output_file,
+        depends_on=metadata_job,
+    )
     click.echo(f"Uploaded metadata {output_file} to S3")
 
 
@@ -63,10 +80,16 @@ def enqueue_metadata(input):
 @click.argument("input")
 @click.argument("timestamp", default="00:00:10")
 def enqueue_thumbnail(input, timestamp):
-    output_file = f"{input}_thumbnail.png"
+    output_file = f"{input}_thumbnail.png
     thumbnail_job=q.enqueue(generate_thumbnail_v1, input, output_file, timestamp)
     click.echo(f"Thumbnail generation task enqueued for {input}")
-    q.enqueue(upload_to_s3, output_file, "video-thumbnail-temp-1", output_file, depends_on=thumbnail_job)
+    q.enqueue(
+        upload_to_s3,
+        output_file,
+        "video-thumbnail-temp-1",
+        output_file,
+        depends_on=thumbnail_job,
+    )
     click.echo(f"Uploaded thumbnail {output_file} to S3")
 
 # @cli.command()
@@ -134,6 +157,16 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
 
     # thumbnail
     thumbnail_job= q.enqueue(generate_thumbnail, input, output_dir)
+
+
+@cli.command()
+@click.argument("input")
+def enqueue_subtitle(input):
+    subtitle_job = q.enqueue(generate_subtitle, input)
+    click.echo(f"Subtitle generation task enqueued for {input}")
+    # q.enqueue(upload_to_s3,f"{input}_transcoded.mp4", "video-transcoding-temp-1", f"{input}_transcoded.mp4", depends_on=subtitle_job)
+    click.echo(f"Subtitle generated for video {input}")
+    # mp4 to S3")
 
 
 if __name__ == "__main__":
