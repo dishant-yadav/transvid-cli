@@ -25,7 +25,7 @@ def create_video(title, summary, caption, thumbnail, length, description):
     except Exception as e:
         print(e)
 
-def create_qualities(id, quality):
+def create_quality(id, quality):
     try:
         r= __SUPABASE.table('quality').insert([
             {'id': id, 

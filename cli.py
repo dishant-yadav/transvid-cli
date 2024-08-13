@@ -126,6 +126,9 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
         q_job= q.enqueue(transcode, input, output_dir, qual['bitrate'], qual['quality'])
         transcode_job.append(q_job)
 
+        # create quality in db
+        db_actions.create_quality(video_id, qual["quality"])
+
     # metadata
     metadata_job= q.enqueue(extract_metadata, input, output_dir)
 
