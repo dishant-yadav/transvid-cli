@@ -158,11 +158,14 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
     # thumbnail
     thumbnail_job= q.enqueue(generate_thumbnail, input, output_dir)
 
+    # caption
+    caption_job= q.enqueue(generate_subtitle, input, output_dir)
+
 
 @cli.command()
 @click.argument("input")
 def enqueue_subtitle(input):
-    subtitle_job = q.enqueue(generate_subtitle, input)
+    subtitle_job = q.enqueue(generate_subtitle, input, "./")
     click.echo(f"Subtitle generation task enqueued for {input}")
     # q.enqueue(upload_to_s3,f"{input}_transcoded.mp4", "video-transcoding-temp-1", f"{input}_transcoded.mp4", depends_on=subtitle_job)
     click.echo(f"Subtitle generated for video {input}")
