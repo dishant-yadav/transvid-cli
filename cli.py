@@ -6,7 +6,7 @@ from tasks import simple_task
 
 from ffmpeg_worker import transcode, transcode_v1, extract_metadata_v1, extract_metadata, generate_thumbnail_v1, generate_thumbnail, get_quality_and_duration
 import video_qualities
-from upload_to_s3 import upload_to_s3
+from upload_to_s3 import upload_to_s3, create_folder
 import db_actions
 from pathlib import Path
 from subtitle_generate import generate_subtitle
@@ -134,6 +134,8 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
     video= db_actions.create_video(title, summary, caption, thumbnail, length, description)
     video_id= video[0]["id"]
 
+    create_folder_job= q.enqueue(create_folder, video_id)
+
     # Create a folder: video_id
     wd= Path.cwd()
     output_dir= f"{wd}/{video_id}"
@@ -148,20 +150,35 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
     for qual in selected_qualities:
         # transcode in this quality
         click.echo(f"Quality: {qual['quality']}, Bitrate: {qual['bitrate']}")
-        q_job= q.enqueue(transcode, input, output_dir, qual['bitrate'], qual['quality'])
+        q_job= q.enqueue(transcode,
+                         input,
+                         output_dir,
+                         qual['bitrate'],
+                         qual['quality'],
+                         )
         transcode_job.append(q_job)
+
+        # create function which fetch all videos and upload to s3.
 
         # create quality in db
         db_actions.create_quality(video_id, qual["quality"])
+    
+    # upload to s3
 
     # metadata
     metadata_job= q.enqueue(extract_metadata, input, output_dir)
 
+    # upload to s3
+
     # thumbnail
     thumbnail_job= q.enqueue(generate_thumbnail, input, output_dir)
 
+    # upload to s3
+
     # caption
     caption_job= q.enqueue(generate_subtitle, input, output_dir)
+
+    # upload to s3
 
     generate_subtitle(input, output_dir)
 
