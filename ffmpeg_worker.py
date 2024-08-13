@@ -98,6 +98,16 @@ def extract_metadata(input_file, output_dir): # output file=metadata.json
     return probe
 
 
+def convert_srt_to_vtt(input_srt_file, directory):
+    # Run the FFmpeg command to convert .srt to .vtt
+    input_srt_file=os.path.join(directory, input_srt_file)
+    output_vtt_file=os.path.join(directory, "caption.vtt")
+    ffmpeg.input(input_srt_file).output(output_vtt_file).run()
+    
+    print(f"Converted '{input_srt_file}' to '{output_vtt_file}'")
+    os.remove(input_srt_file)
+
+
 if __name__ == "__main__":
     # Example usage:
     quality, duration= get_quality_and_duration("input.mp4")

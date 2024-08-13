@@ -117,6 +117,7 @@ def enqueue_thumbnail(input, timestamp):
 def enqueue_all(input, quality, caption, thumbnail, summary):
 
     vid_qual, length= get_quality_and_duration(input)
+    
 
     # consts
     title= "Video Title"
@@ -143,6 +144,7 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
 
     # transcode
     transcode_job=[]
+    
     for qual in selected_qualities:
         # transcode in this quality
         click.echo(f"Quality: {qual['quality']}, Bitrate: {qual['bitrate']}")
@@ -160,6 +162,8 @@ def enqueue_all(input, quality, caption, thumbnail, summary):
 
     # caption
     caption_job= q.enqueue(generate_subtitle, input, output_dir)
+
+    generate_subtitle(input, output_dir)
 
 
 @cli.command()

@@ -1,0 +1,14 @@
+{
+	"name": "Alpine with Redis and FFmpeg",
+	"dockerFile": "Dockerfile",
+	"context": ".",
+	"appPort": [6379], // Add any other ports your application might use
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	}
+  }
+  
